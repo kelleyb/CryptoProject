@@ -1,22 +1,24 @@
 from paillier import *
 from candidate import *
 from voter  import *
+from election_board import *
 import sys
 import traceback
 
-priv, pub = generate_keypair(128) 
-
-candidates = []
-for line in open("candidates.txt"):
-    candidates.append(Candidate(line.strip(), encrypt(pub, 0)))
-
-print 'Candidates:'
 
 voters = {}
 for line in open('voters.txt'):
     parsed = line.strip().split(',')
     voters[parsed[1].strip()] = Voter(parsed[0],parsed[1])
 
+eb = ElectionBoard(voters)
+
+candidates = []
+for line in open("candidates.txt"):
+    eb.register_candidate(Candidate(line.strip(), encrypt(eb.public_key, 0)))
+    candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)))
+
+print 'Candidates:'
 
 for c in range(len(candidates)):
     print '    %d) %s' % (c + 1, candidates[c].name)
@@ -28,7 +30,7 @@ while True:
     if user_input == 'end' or user_input == 'e':
         for voter_vote in votes:
             for i in range(len(candidates)):
-                candidates[i].numVotes = e_add(pub,candidates[i].numVotes,voter_vote[i])
+                candidates[i].numVotes = e_add(eb.public_key,candidates[i].numVotes,voter_vote[i])
         break
 
     if user_input == 'vote' or user_input == 'v':
@@ -46,8 +48,8 @@ while True:
                     v = 0
                     if vote == c:
                         v = 1
-                    print encrypt(pub, v)
-                    u_vote.append(encrypt(pub, v))
+                    # print encrypt(eb.public_key, v)
+                    u_vote.append(encrypt(eb.public_key, v))
 
                 votes.append(u_vote)
                 break
@@ -66,5 +68,5 @@ while True:
                 traceback.print_exc()
                 sys.exit(1)
 
-for candidate in candidates:
-    print 'Number of votes for %s is %d'%(candidate.name, decrypt(priv,pub,candidate.numVotes))
+
+eb.decrypt_votes(candidates)
