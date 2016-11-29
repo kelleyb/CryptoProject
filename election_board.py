@@ -43,7 +43,7 @@ class ElectionBoard():
 
         Return True if it's all good, otherwise False
         '''
-        if voter.voterID not in self.registered_voters or self.registered_voters[voter.voterID] != voter:
+        if voter.voterID not in self.registered_voters:
             return False
         return True
 
