@@ -2,21 +2,25 @@ from paillier import *
 from candidate import *
 from voter  import *
 from election_board import *
+from bulletin_board import *
 import sys
 import traceback
 
+## Get an instance of the election board
+eb = ElectionBoard.Instance()
 
+## Register voters and candidates
 voters = {}
 for line in open('voters.txt'):
     parsed = line.strip().split(',')
     voters[parsed[1].strip()] = Voter(parsed[0],parsed[1])
 
-eb = ElectionBoard(voters)
-
 candidates = []
 for line in open("candidates.txt"):
-    eb.register_candidate(Candidate(line.strip(), encrypt(eb.public_key, 0)))
     candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)))
+
+eb.register_voters(voters)
+eb.register_candidates(candidates)
 
 print 'Candidates:'
 

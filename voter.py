@@ -5,4 +5,7 @@ class Voter(object):
 
     def __repr__(self):
         return 'Voter(\'%s\':%s)' % (self.name, self.voterID)
+
+    def __eq__(self, other):
+    	return self.name == other.name and self.voterID == other.voterID
         

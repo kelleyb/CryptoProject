@@ -1,24 +1,33 @@
 from voter import *
 from paillier import *
 from candidate import *
+from singleton import Singleton
 
 class CandidateException(Exception):
     pass
 
+@Singleton
 class ElectionBoard():
-    def __init__(self, registered_voters, candidates=[]):
+    def __init__(self):
         '''
         candidates: list of Candidate objects
         registered_voters: dict with str key (SSN/VoterID) and Voter value
         '''
-        self.candidates = candidates
-        self.registered_voters = registered_voters
+        self.candidates = []
+        self.registered_voters = {}
 
-        self.candidate_names = set([candidate.name for candidate in candidates])
+        self.candidate_names = set()
 
         priv, pub = generate_keypair(128) 
         self.private_key = priv
         self.public_key = pub
+
+    def register_voter(self, voter):
+        self.registered_voters[voter.voterID] = voter
+
+    def register_voters(self, voters):
+        for v in voters:
+            self.register_voter(voters[v])
 
     def register_candidate(self, candidate):
         self.candidates.append(candidate)
@@ -27,6 +36,16 @@ class ElectionBoard():
     def register_candidates(self, candidates):
         for c in candidates:
             self.register_candidate(c)
+
+    def check_voter(self, voter):
+        '''
+        Given a voter object, check they're registered and that all info matches up.
+
+        Return True if it's all good, otherwise False
+        '''
+        if voter.voterID not in self.registered_voters or self.registered_voters[voter.voterID] != voter:
+            return False
+        return True
 
     def blind_sign(self, vote):
         '''
