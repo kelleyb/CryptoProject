@@ -3,7 +3,9 @@ from candidate import *
 from voter  import *
 from election_board import *
 import sys
+import random
 import traceback
+import math
 
 
 voters = {}
@@ -15,8 +17,8 @@ eb = ElectionBoard(voters)
 
 candidates = []
 for line in open("candidates.txt"):
-    eb.register_candidate(Candidate(line.strip(), encrypt(eb.public_key, 0)))
-    candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)))
+    eb.register_candidate(Candidate(line.strip(), encrypt(eb.public_key, 0)[1]))
+    candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)[1]))
 
 print 'Candidates:'
 
@@ -52,6 +54,19 @@ while True:
                     u_vote.append(encrypt(eb.public_key, v))
 
                 votes.append(u_vote)
+                count = 1
+                for vote in votes:
+                    print 'dicks'
+                    r = random.randint(0,eb.public_key.n)
+                    s = random.randint(0,eb.public_key.n)
+                    u = pow(eb.public_key.g, r, eb.public_key.n_sq) * pow(s, eb.public_key.n, eb.public_key.n_sq) % eb.public_key.n_sq
+                    e = random.randint(0,999)
+                    val = int(raw_input('What was your vote for Candidate %d' % count))
+                    v = r - e * val
+                    w = s * pow(vote[count-1][0], -1*e)
+                    print u
+                    print modpow(eb.public_key.g, v,eb.public_key.n_sq) * modpow(vote[count-1][1],e,eb.public_key.n_sq) * modpow(w, eb.public_key.n,eb.public_key.n_sq) % eb.public_key.n_sq
+                    count+=1
                 break
 
             except ValueError:
@@ -64,7 +79,7 @@ while True:
                 sys.exit(1)
 
             except:
-                print 'Dammit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
+                print 'Damnit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
                 traceback.print_exc()
                 sys.exit(1)
 
