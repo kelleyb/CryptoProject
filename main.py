@@ -1,6 +1,6 @@
 from paillier import *
 from candidate import *
-
+from voter  import *
 import sys
 import traceback
 
@@ -13,6 +13,12 @@ for candidate in raw_candidates:
     candidates.append(Candidate(candidate, encrypt(pub, 0)))
 
 print 'Candidates:'
+
+voters = {}
+for line in open('voters.txt'):
+    parsed = line.strip().split(',')
+    voters[parsed[1].strip()] = Voter(parsed[0],parsed[1])
+
 
 for c in range(len(candidates)):
     print '    %d) %s' % (c + 1, candidates[c].name)
@@ -42,7 +48,7 @@ while True:
                     v = 0
                     if vote == c:
                         v = 1
-
+                    print encrypt(pub, v)
                     u_vote.append(encrypt(pub, v))
 
                 votes.append(u_vote)
