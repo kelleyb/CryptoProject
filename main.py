@@ -1,37 +1,66 @@
 from paillier import *
 from candidate import *
 
-#fucking around with shit
-
+import sys
+import traceback
 
 priv, pub = generate_keypair(128) 
 
-
-raw_candidates = ["Trump","Clinton","Gary J","Jill Crazy Stein"]
+raw_candidates = ['Trump','Clinton','Gary J','Jill Crazy Stein']
 candidates = []
+
 for candidate in raw_candidates:
-    candidates.append(Candidate(candidate))
-print candidates
+    candidates.append(Candidate(candidate, encrypt(pub, 0)))
+
+print 'Candidates:'
+
+for c in range(len(candidates)):
+    print '    %d) %s' % (c + 1, candidates[c].name)
+
+
 votes = []
 while True:
-    user_input = raw_input("Enter command (VOTE or END) => ")
-    if user_input == "END":
+    user_input = raw_input('Enter command (VOTE or END) => ').lower()
+    if user_input == 'end' or user_input == 'e':
         for voter_vote in votes:
             for i in range(len(candidates)):
-                if candidates[i].numVotes == 0:
-                    candidates[i].numVotes = voter_vote[i]
-                else:
-                    candidates[i].numVotes = e_add(pub,candidates[i].numVotes,voter_vote[i])
-
-                    
-
+                candidates[i].numVotes = e_add(pub,candidates[i].numVotes,voter_vote[i])
         break
-    if user_input == "VOTE":
-        user_vote = []
-        for key in candidates:
-            c_vote = int(raw_input("Do you vote for %s? Enter either 1 or 0 => "%key.name))
-            user_vote.append(encrypt(pub, c_vote))
-        votes.append(user_vote)
+
+    if user_input == 'vote' or user_input == 'v':
+        print 'Enter the ID of the candidate you want to vote for (1-%d)' % (len(candidates)),
+        while True:
+            try:
+                print '==>',
+                vote = int(raw_input()) - 1
+
+                if vote not in xrange(0, len(candidates)):
+                    print 'Please enter a number between 1 and %d' % len(candidates),
+
+                u_vote = []
+                for c in range(len(candidates)):
+                    v = 0
+                    if vote == c:
+                        v = 1
+
+                    u_vote.append(encrypt(pub, v))
+
+                votes.append(u_vote)
+                break
+
+            except ValueError:
+                ## Goddamn users, trying to break our system
+                print 'Please enter a number between 1 and %d.' % len(candidates),
+
+            except KeyboardInterrupt:
+                # kbye
+                print '\nExiting'
+                sys.exit(1)
+
+            except:
+                print 'Dammit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
+                traceback.print_exc()
+                sys.exit(1)
 
 for candidate in candidates:
-    print "Number of votes for %s is %d"%(candidate.name, decrypt(priv,pub,candidate.numVotes))
+    print 'Number of votes for %s is %d'%(candidate.name, decrypt(priv,pub,candidate.numVotes))

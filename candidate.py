@@ -1,5 +1,7 @@
 class Candidate(object):
-    def __init__(self, name):
+    def __init__(self, name, numVotes):
         self.name = name
-        self.numVotes = 0
+        self.numVotes = numVotes
         
+    def __repr__(self):
+    	return 'Candidate(\'%s\')' % self.name
