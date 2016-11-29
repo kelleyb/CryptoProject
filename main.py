@@ -38,39 +38,49 @@ while True:
         break
 
     if user_input == 'vote' or user_input == 'v':
-        print 'Enter the ID of the candidate you want to vote for (1-%d)' % (len(candidates)),
-        while True:
-            try:
-                print '==>',
-                vote = int(raw_input()) - 1
 
-                if vote not in xrange(0, len(candidates)):
-                    print 'Please enter a number between 1 and %d' % len(candidates),
+        voterID = raw_input('Enter your voter ID => ')
 
-                u_vote = []
-                for c in range(len(candidates)):
-                    v = 0
-                    if vote == c:
-                        v = 1
-                    # print encrypt(eb.public_key, v)
-                    u_vote.append(encrypt(eb.public_key, v))
+        if voterID in voters:
+            if not voters[voterID].voted:
+                print 'Enter the ID of the candidate you want to vote for (1-%d)' % (len(candidates)),
+                while True:
+                    try:
+                        print '==>',
+                        vote = int(raw_input()) - 1
 
-                votes.append(u_vote)
-                break
+                        if vote not in xrange(0, len(candidates)):
+                            print 'Please enter a number between 1 and %d' % len(candidates),
 
-            except ValueError:
-                ## Goddamn users, trying to break our system
-                print 'Please enter a number between 1 and %d.' % len(candidates),
+                        u_vote = []
+                        for c in range(len(candidates)):
+                            v = 0
+                            if vote == c:
+                                v = 1
+                            # print encrypt(eb.public_key, v)
+                            u_vote.append(encrypt(eb.public_key, v))
 
-            except KeyboardInterrupt:
-                # kbye
-                print '\nExiting'
-                sys.exit(1)
+                        votes.append(u_vote)
+                        voters[voterID].voted = True
+                        break
 
-            except:
-                print 'Dammit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
-                traceback.print_exc()
-                sys.exit(1)
+                    except ValueError:
+                        ## Goddamn users, trying to break our system
+                        print 'Please enter a number between 1 and %d.' % len(candidates),
+
+                    except KeyboardInterrupt:
+                        # kbye
+                        print '\nExiting'
+                        sys.exit(1)
+
+                    except:
+                        print 'Dammit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
+                        traceback.print_exc()
+                        sys.exit(1)
+            else:
+                print 'You have already voted'
+        else:
+            print "You are not a registered voter"
 
 
 eb.decrypt_votes(candidates)
