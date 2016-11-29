@@ -6,11 +6,9 @@ import traceback
 
 priv, pub = generate_keypair(128) 
 
-raw_candidates = ['Trump','Clinton','Gary J','Jill Crazy Stein']
 candidates = []
-
-for candidate in raw_candidates:
-    candidates.append(Candidate(candidate, encrypt(pub, 0)))
+for line in open("candidates.txt"):
+    candidates.append(Candidate(line.strip(), encrypt(pub, 0)))
 
 print 'Candidates:'
 
