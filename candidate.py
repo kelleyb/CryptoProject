@@ -4,4 +4,4 @@ class Candidate(object):
         self.numVotes = numVotes
         
     def __repr__(self):
-    	return 'Candidate(\'%s\')' % self.name
+        return 'Candidate(\'%s\')' % self.name
