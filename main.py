@@ -4,6 +4,8 @@ from voter  import *
 from election_board import *
 from bulletin_board import *
 import sys
+import os
+
 import traceback
 
 ## Get an instance of the election board
@@ -23,14 +25,15 @@ for line in open("candidates.txt"):
 eb.register_voters(voters)
 eb.register_candidates(candidates)
 
-print 'Candidates:'
 
-for c in range(len(candidates)):
-    print '    %d) %s' % (c + 1, candidates[c].name)
 
 
 votes = []
 while True:
+    print 'Candidates:'
+
+    for c in range(len(candidates)):
+        print '    %d) %s' % (c + 1, candidates[c].name)
     user_input = raw_input('Enter command (VOTE or END) => ').lower()
     if user_input == 'end' or user_input == 'e':
         # for voter_vote in votes:
@@ -65,6 +68,7 @@ while True:
 
                         bb.addVote(u_vote)
                         voters[voterID].voted = True
+                        os.system('cls' if os.name == 'nt' else 'clear')
                         break
 
                     except ValueError:
