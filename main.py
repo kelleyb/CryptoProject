@@ -3,6 +3,7 @@ from candidate import *
 from voter  import *
 from election_board import *
 from bulletin_board import *
+import blind_signature as bs
 import sys
 import os
 
@@ -16,7 +17,7 @@ ca = CountingAuthority.Instance()
 voters = {}
 for line in open('voters.txt'):
     parsed = line.strip().split(',')
-    voters[parsed[1].strip()] = Voter(parsed[0],parsed[1])
+    voters[parsed[1].strip()] = Voter(parsed[0].strip(),parsed[1].strip())
 
 candidates = []
 for line in open("candidates.txt"):
@@ -24,9 +25,6 @@ for line in open("candidates.txt"):
 
 eb.register_voters(voters)
 eb.register_candidates(candidates)
-
-
-
 
 votes = []
 while True:
@@ -48,7 +46,7 @@ while True:
         voterID = raw_input('Enter your voter ID => ')
 
         if voterID in voters:
-            if not voters[voterID].voted:
+            if not eb.has_voter_voted(voterID):
                 print 'Enter the ID of the candidate you want to vote for (1-%d)' % (len(candidates)),
                 while True:
                     try:
@@ -66,9 +64,18 @@ while True:
                             # print encrypt(eb.public_key, v)
                             u_vote.append(encrypt(eb.public_key, v))
 
-                        bb.addVote(u_vote)
-                        voters[voterID].voted = True
-                        os.system('cls' if os.name == 'nt' else 'clear')
+                        blind_signed_vote = []
+                        for v in u_vote:
+                            ## We want to blind sign each vote. So blind it, 
+                            blinding_factor, blinded_msg = bs.blind(v, eb.public_signing_key)
+                            signed = eb.blind_sign(blinded_msg)
+                            unblinded = bs.unblind(signed, blinding_factor, eb.public_signing_key)
+                            blind_signed_vote.append((unblinded, blinding_factor))
+
+                        if not eb.has_voter_voted(voterID):
+                            bb.addVote(voterID, u_vote, blind_signed_vote)
+                            os.system('cls' if os.name == 'nt' else 'clear')
+                        
                         break
 
                     except ValueError:

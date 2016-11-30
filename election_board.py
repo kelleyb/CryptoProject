@@ -2,8 +2,12 @@ from voter import *
 from paillier import *
 from candidate import *
 from singleton import Singleton
+import blind_signature as bs
 
 class CandidateException(Exception):
+    pass
+
+class VoterException(Exception):
     pass
 
 @Singleton
@@ -22,12 +26,42 @@ class ElectionBoard():
         self.private_key = priv
         self.public_key = pub
 
+        #############################################
+        ## FUCK IT WE'RE DOING IT LIVE
+        #############################################
+        pub_sign, priv_sign = bs.keygen(2**256)
+        self.public_signing_key = pub_sign
+        self.private_signing_key = priv_sign
+
     def register_voter(self, voter):
         self.registered_voters[voter.voterID] = voter
 
     def register_voters(self, voters):
         for v in voters:
             self.register_voter(voters[v])
+
+    def voter_voted(self, voterID):
+        '''
+        Set the voted flag for the voter to True. If they're not registered or already voted,
+        raise an exception
+        '''
+
+        if voterID in self.registered_voters:
+            if not self.registered_voters[voterID].voted:
+                self.registered_voters[voterID].voted = True
+            else:
+                raise VoterException('Voter %s has already voted!' % voterID)
+        else:
+            raise VoterException('Voter %s is not registered!' % voterID)
+
+    def has_voter_voted(self, voterID):
+        '''
+        Returns whether or not the voter has voted. Raises exception if not registered
+        '''
+        if voterID in self.registered_voters:
+            return self.registered_voters[voterID].voted
+        else:
+            raise VoterException('Voter %s is not registered!' % voterID)
 
     def register_candidate(self, candidate):
         self.candidates.append(candidate)
@@ -51,7 +85,7 @@ class ElectionBoard():
         '''
         TBD
         '''
-        pass
+        return bs.signature(vote, self.private_signing_key)
 
     def decrypt_votes(self):
         '''
