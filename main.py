@@ -8,7 +8,8 @@ import traceback
 
 ## Get an instance of the election board
 eb = ElectionBoard.Instance()
-
+bb = BulletinBoard.Instance()
+ca = CountingAuthority.Instance()
 ## Register voters and candidates
 voters = {}
 for line in open('voters.txt'):
@@ -32,9 +33,11 @@ votes = []
 while True:
     user_input = raw_input('Enter command (VOTE or END) => ').lower()
     if user_input == 'end' or user_input == 'e':
-        for voter_vote in votes:
-            for i in range(len(candidates)):
-                candidates[i].numVotes = e_add(eb.public_key,candidates[i].numVotes,voter_vote[i])
+        # for voter_vote in votes:
+        #     for i in range(len(candidates)):
+        #         candidates[i].numVotes = e_add(eb.public_key,candidates[i].numVotes,voter_vote[i])
+        # break
+        bb.endElection()
         break
 
     if user_input == 'vote' or user_input == 'v':
@@ -60,7 +63,7 @@ while True:
                             # print encrypt(eb.public_key, v)
                             u_vote.append(encrypt(eb.public_key, v))
 
-                        votes.append(u_vote)
+                        bb.addVote(u_vote)
                         voters[voterID].voted = True
                         break
 
@@ -83,4 +86,4 @@ while True:
             print "You are not a registered voter"
 
 
-eb.decrypt_votes(candidates)
+# eb.decrypt_votes(candidates)

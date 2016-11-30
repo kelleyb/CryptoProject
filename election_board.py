@@ -53,7 +53,7 @@ class ElectionBoard():
         '''
         pass
 
-    def decrypt_votes(self, final_tally):
+    def decrypt_votes(self):
         '''
         final_tally: list of candidates with the final vote counts
 
@@ -62,7 +62,7 @@ class ElectionBoard():
         '''
 
         unencrypted = []
-        for candidate in final_tally:
+        for candidate in self.candidates:
             if candidate.name not in self.candidate_names:
                 raise CandidateException('Candidate in list not registered!')
 
