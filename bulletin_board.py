@@ -34,7 +34,7 @@ class BulletinBoard():
         self.__votes.append(vote)
 
     def endElection(self):
-        self.ca.verifiyRowSum(self.__votes)
+        return self.ca.verifiyRowSum(self.__votes)
 
 
 

@@ -1,100 +1,131 @@
+#!/usr/bin/python
 from paillier import *
 from candidate import *
 from voter  import *
 from election_board import *
 from bulletin_board import *
-import blind_signature as bs
 import sys
 import os
 
+from Tkinter import * 
 import traceback
 
+
+
+def submitVote():
+    global userPick
+    global userPIN
+    # print voters
+    if str(userPIN.get()).strip() in voters and (userPick.get()) != '':
+        if not voters[str(userPIN.get()).strip()].voted:
+            u_vote = []
+            for c in range(len(candidates)):
+                v = 0
+                if int(userPick.get()) == c:
+                    v = 1
+                u_vote.append(encrypt(eb.public_key, v))
+
+            blind_signed_vote = []
+            for v in u_vote:
+                ## We want to blind sign each vote. So blind it, 
+                blinding_factor, blinded_msg = bs.blind(v, eb.public_signing_key)
+                signed = eb.blind_sign(blinded_msg)
+                unblinded = bs.unblind(signed, blinding_factor, eb.public_signing_key)
+                blind_signed_vote.append((unblinded, blinding_factor))
+
+            if not eb.has_voter_voted(str(userPIN.get().strip())):
+                bb.addVote(userPIN.get().strip(), u_vote, blind_signed_vote)
+
+            voters[str(userPIN.get()).strip()].voted = True
+            userPick = StringVar()
+            userPIN = StringVar()
+            toplevel.destroy()
+
+def castVote():
+    global canCast
+    if canCast:
+        
+        global toplevel 
+
+        toplevel = Toplevel()
+        toplevel.geometry("600x800+200+200")
+        toplevel.focus_force()
+        label = Label(toplevel, text="Enter your voting ID", height=0, width=100)
+        label.pack()
+       
+        e = Entry(toplevel,textvariable=userPIN)
+        e.pack()
+
+        
+
+        for c in range(len(candidates)):
+             b = Radiobutton(toplevel, text=candidates[c].name, variable=userPick, value=c)
+             b.pack(anchor=W)
+        toplevel.focus_force()
+        b = Button(toplevel, text="Submit Vote", width=20, command=submitVote)
+        b.pack(side='bottom',padx=0,pady=0)
+
+def endVoting():
+    global isOver
+    global canCast
+    global b
+    global button1
+
+    if not isOver:
+    
+        isOver = True
+        canCast = False
+        e = bb.endElection()
+        final = ''
+        global resultsLabel
+        for candidate in e:
+            final += 'Number of votes for %s is %d\n'%(candidate.name, candidate.numVotes)
+        resultsLabel  = Label(app, text=final, height=0, width=100)
+        resultsLabel.pack()
+
+        b.pack_forget()
+        button1.pack_forget()
+
+
+
+
+if __name__ == "__main__":
+      
 ## Get an instance of the election board
-eb = ElectionBoard.Instance()
-bb = BulletinBoard.Instance()
-ca = CountingAuthority.Instance()
-## Register voters and candidates
-voters = {}
-for line in open('voters.txt'):
-    parsed = line.strip().split(',')
-    voters[parsed[1].strip()] = Voter(parsed[0].strip(),parsed[1].strip())
+    isOver = False
+    canCast = True
+    eb = ElectionBoard.Instance()
+    bb = BulletinBoard.Instance()
+    ca = CountingAuthority.Instance()
+    ## Register voters and candidates
+    voters = {}
+    for line in open('voters.txt'):
+        parsed = line.strip().split(',')
+        voters[parsed[1].strip()] = Voter(parsed[0].strip(),parsed[1].strip())
 
-candidates = []
-for line in open("candidates.txt"):
-    candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)))
+    candidates = []
+    for line in open("candidates.txt"):
+        candidates.append(Candidate(line.strip(), encrypt(eb.public_key, 0)))
 
-eb.register_voters(voters)
-eb.register_candidates(candidates)
+    eb.register_voters(voters)
 
-votes = []
-while True:
-    print 'Candidates:'
+    eb.register_candidates(candidates)
 
-    for c in range(len(candidates)):
-        print '    %d) %s' % (c + 1, candidates[c].name)
-    user_input = raw_input('Enter command (VOTE or END) => ').lower()
-    if user_input == 'end' or user_input == 'e':
-        # for voter_vote in votes:
-        #     for i in range(len(candidates)):
-        #         candidates[i].numVotes = e_add(eb.public_key,candidates[i].numVotes,voter_vote[i])
-        # break
-        bb.endElection()
-        break
+    app = Tk()
+    toplevel = None
+    app.title("Totally Secure and Legit Voting Machine 3000")
+    app.geometry("300x200+200+200")
+    userPick = StringVar()
+    userPIN = StringVar()
 
-    if user_input == 'vote' or user_input == 'v':
+    resultsLabel = None
+    b = Button(app, text="End Voting", width=20, command=endVoting)
+    button1 = Button(app, text="Cast Your Vote", width=20, command=castVote)
+    
+    b.pack(side='bottom',padx=0,pady=0)
+    button1.pack(side='bottom',padx=5,pady=5)
 
-        voterID = raw_input('Enter your voter ID => ')
-
-        if voterID in voters:
-            if not eb.has_voter_voted(voterID):
-                print 'Enter the ID of the candidate you want to vote for (1-%d)' % (len(candidates)),
-                while True:
-                    try:
-                        print '==>',
-                        vote = int(raw_input()) - 1
-
-                        if vote not in xrange(0, len(candidates)):
-                            print 'Please enter a number between 1 and %d' % len(candidates),
-
-                        u_vote = []
-                        for c in range(len(candidates)):
-                            v = 0
-                            if vote == c:
-                                v = 1
-                            # print encrypt(eb.public_key, v)
-                            u_vote.append(encrypt(eb.public_key, v))
-
-                        blind_signed_vote = []
-                        for v in u_vote:
-                            ## We want to blind sign each vote. So blind it, 
-                            blinding_factor, blinded_msg = bs.blind(v, eb.public_signing_key)
-                            signed = eb.blind_sign(blinded_msg)
-                            unblinded = bs.unblind(signed, blinding_factor, eb.public_signing_key)
-                            blind_signed_vote.append((unblinded, blinding_factor))
-
-                        if not eb.has_voter_voted(voterID):
-                            bb.addVote(voterID, u_vote, blind_signed_vote)
-                            os.system('cls' if os.name == 'nt' else 'clear')
-                        
-                        break
-
-                    except ValueError:
-                        ## Goddamn users, trying to break our system
-                        print 'Please enter a number between 1 and %d.' % len(candidates),
-
-                    except KeyboardInterrupt:
-                        # kbye
-                        print '\nExiting'
-                        sys.exit(1)
-
-                    except:
-                        print 'Dammit, you broke our program in an unexpected way. Good for you. Send this to a programmer:'
-                        traceback.print_exc()
-                        sys.exit(1)
-            else:
-                print 'You have already voted'
-        else:
-            print "You are not a registered voter"
+    app.mainloop() 
 
 
-# eb.decrypt_votes(candidates)
+   

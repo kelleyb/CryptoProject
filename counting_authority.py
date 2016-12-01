@@ -21,7 +21,7 @@ class CountingAuthority():
 
             for i in range(len(self.eb.candidates)):
                 self.eb.candidates[i].numVotes = e_add(self.eb.public_key,self.eb.candidates[i].numVotes,voter_vote[i])
-        self.eb.decrypt_votes()
+        return self.eb.decrypt_votes()
     def verifiyRowSum(self, input):
         for x in range(0,random.randint(0,100)):
             random.shuffle(input)
@@ -45,6 +45,6 @@ class CountingAuthority():
             # print valid
             if valid:
                 self.validVotes.append(voterVotes)
-        self.finalTally()
+        return self.finalTally()
 
         

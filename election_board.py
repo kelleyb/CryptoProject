@@ -101,8 +101,4 @@ class ElectionBoard():
                 raise CandidateException('Candidate in list not registered!')
 
             unencrypted.append(Candidate(candidate.name, decrypt(self.private_key, self.public_key, candidate.numVotes)))
-        
-        ## All candidates given to us are registered. Print stuff out now
-        for candidate in unencrypted:
-            print 'Number of votes for %s is %d'%(candidate.name, candidate.numVotes)
-
+        return unencrypted
