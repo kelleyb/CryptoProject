@@ -1,0 +1,42 @@
+Documentation
+----------------------------------------------------
+John Behnke, Charles Goepfert, Brian Kelley
+----------------------------------------------------
+Project Requirements
+----------------------------------------------------
+# You must have tkinter installed in order for the GUI to work (https://wiki.python.org/moin/TkInter)
+# Use python 2.7.X
+# Two user generated text files must be generated. voters.txt and candidates.txt. 
+# voters.txt contains all registered voters in the form: voter name, voterID. VoterIDs are globally unique. 
+# candidates.txt contains the eligible candidates in the form: candidate name
+----------------------------------------------------
+Note
+----------------------------------------------------
+The team could not get a stable and reliable ZKP working, so that part of the project is missing. 
+The team created a simple GUI for ease of use. 
+----------------------------------------------------
+Project Components
+----------------------------------------------------
+blind_signature.py, paillier.py, primes.py: Various Crypto Libraries and helpers
+
+candidate.py, voter.py: Objects for representation of the voters and the candidates. 
+
+bulletin_board.py: Singleton representation of the bulletin board where the encrypted votes are sent to after being verified by the election board
+
+counting_authority.py: Singleton representation for the counting authority, which counts all of the encrypted votes and sends them to the election board for final decryption and tallying. 
+
+election_board.py: Singleton representation of the election board which ensures users are registered, signs encrypted votes, and does a final decryption on all votes that are submitted. 
+----------------------------------------------------
+General Flow
+----------------------------------------------------
+First, a user clicks "Cast Your Vote". After click that, the user is presented with the list of candidates read from the candidates.txt file. 
+The user can select at most 1 candidate (and must select one) and they must enter their voter ID. In order for a vote to actually be submitted, the user must be in the registered list of voters and they must have not voted. 
+
+When a user submits their vote, a "1" vote is generated for their selected candidate and a "0" vote for the ones they did not select. Each of these votes are then encrypted, blinded, send to the election board who signs the blinded vote, then they are unblinded, and sent to the bulletin board. 
+
+When the bulletin board receives  a set of votes, it ensures that the signature was actually created by the election board. If it was, it is added to the list of votes. 
+
+When voting ends, all the valid votes are summed up by the counting authority and sent to the election board for the final decryption and display of the totals. 
+
+
+
